@@ -30,23 +30,81 @@
       justify-content: center;
       align-items: center;
       z-index: 9999;
-      cursor: pointer;
+      overflow: hidden;
     }
 
-    #fullscreen-prompt h1 {
+    #error-background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    #error-logs {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      font-size: 12px;
       color: #ff0000;
+      text-shadow: 0 0 5px #ff0000;
+      white-space: pre;
+      animation: scroll-logs 10s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes scroll-logs {
+      0% { transform: translateY(100%); }
+      100% { transform: translateY(-100%); }
+    }
+
+    #main-error {
+      text-align: center;
+      z-index: 1;
+    }
+
+    #main-error h1 {
       font-size: 2.5em;
+      color: #ff0000;
       text-shadow: 0 0 10px #ff0000;
       animation: flicker 1.5s infinite;
+      margin-bottom: 20px;
     }
 
-    #fullscreen-prompt p {
-      color: #ff5555;
+    #main-error p {
       font-size: 1.2em;
-      margin-top: 20px;
+      color: #ff5555;
+      margin: 10px 0;
     }
 
-    #error-screen {
+    #fake-button {
+      display: inline-block;
+      padding: 15px 30px;
+      background: #00ff00;
+      color: #000;
+      font-weight: bold;
+      margin: 30px 0;
+      cursor: pointer;
+      border: 3px solid #fff;
+      font-family: 'Courier New', monospace;
+      font-size: 1.2em;
+      border-radius: 5px;
+      box-shadow: 0 0 10px #00ff00;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    #countdown-screen {
       display: none;
       position: fixed;
       top: 0;
@@ -55,59 +113,24 @@
       height: 100%;
       background: #000;
       z-index: 9998;
-      overflow: hidden;
-    }
-
-    #error-log {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      width: 90%;
-    }
-
-    #error-log p {
-      margin: 5px 0;
-      font-size: 1.2em;
-      color: #ff0000;
-      text-shadow: 0 0 5px #ff0000;
-      animation: flicker 0.5s infinite alternate;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
     }
 
     #countdown {
-      font-size: 3em;
+      font-size: 4em;
       color: #ff0000;
-      margin: 20px 0;
       text-shadow: 0 0 10px #ff0000;
+      margin-bottom: 20px;
     }
 
-    #fake-button {
-      display: inline-block;
-      padding: 10px 20px;
-      background: #ff0000;
-      color: #000;
-      font-weight: bold;
-      margin: 20px 0;
-      cursor: pointer;
-      border: 2px solid #fff;
-      font-family: 'Courier New', monospace;
-    }
-
-    #fake-button:hover {
-      background: #fff;
-      color: #ff0000;
-    }
-
-    #noise {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      opacity: 0.1;
-      z-index: 9997;
+    #final-message {
+      display: none;
+      text-align: center;
+      color: #00ff00;
+      font-size: 1.5em;
+      margin-top: 20px;
     }
 
     @keyframes flicker {
@@ -128,32 +151,68 @@
 </head>
 <body>
 
-<div id="fullscreen-prompt" onclick="startFullscreen()">
-  <h1>⚠ VİRÜS ALGILANDI! ⚠</h1>
-  <p>#INVALID_ERROR_554</p>
-  <div id="fake-button">ACİL GÜVENLİK ÖNLEMİNE TIKLAYIN</div>
-</div>
-
-<canvas id="noise"></canvas>
-
-<div id="error-screen">
-  <div id="error-log">
-    <h1 class="shake">⚠ SİSTEM ÇÖKTÜ! ⚠</h1>
-    <div id="countdown">10</div>
-    <div id="dynamic-logs"></div>
+<div id="fullscreen-prompt">
+  <div id="error-background">
+    <div id="error-logs">
+ERROR_554: System corruption detected
+BOOT_FAILURE: Unable to load kernel
+MEMORY_LEAK: Critical process terminated
+SECURITY_BREACH: Unauthorized access
+ERROR_554: System corruption detected
+BOOT_FAILURE: Unable to load kernel
+MEMORY_LEAK: Critical process terminated
+SECURITY_BREACH: Unauthorized access
+ERROR_554: System corruption detected
+BOOT_FAILURE: Unable to load kernel
+MEMORY_LEAK: Critical process terminated
+SECURITY_BREACH: Unauthorized access
+    </div>
+  </div>
+  <div id="main-error">
+    <h1 class="shake">⚠ VİRÜS ALGILANDI! ⚠</h1>
+    <p>Sistem dosyaları siliniyor...</p>
+    <p>#INVALID_ERROR_554</p>
+    <div id="fake-button" onclick="startFullscreen()">ACİL GÜVENLİK ÖNLEMİ</div>
   </div>
 </div>
 
+<div id="countdown-screen">
+  <div id="countdown">15</div>
+  <div id="dynamic-logs"></div>
+</div>
+
+<div id="final-message">
+  <p>🔄 SİSTEM KURTARILDI!</p>
+  <p>Bu sadece bir simülasyondu.</p>
+  <p>Telefonunuz güvende. 😊</p>
+</div>
+
+<audio id="error-sound" loop>
+  <source src="data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU..." type="audio/wav">
+</audio>
+
 <script>
-  // ---------- TAM EKRAN MODU ----------
+  // ---------- SES AYARLARI (KISILAMAZ) ----------
+  const errorSound = document.getElementById("error-sound");
+  errorSound.volume = 0.5; // Orta seviye
+  errorSound.loop = true;
+
+  // Ses dosyası (base64 encoded alarm sesi)
+  errorSound.src = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU..."; // Kısaltıld
+  // (Gerçek kodda tam base64 ses dosyası olacak)
+
+  // ---------- TAM EKRAN MODU (ÇIKIŞ ENGELLENİYOR) ----------
   function startFullscreen() {
     const el = document.documentElement;
     const prompt = document.getElementById("fullscreen-prompt");
+    const countdownScreen = document.getElementById("countdown-screen");
+    const finalMessage = document.getElementById("final-message");
 
     const enterFullscreen = () => {
       prompt.style.display = "none";
-      document.getElementById("error-screen").style.display = "block";
-      startErrorSimulation();
+      countdownScreen.style.display = "flex";
+      errorSound.play(); // Ses başlat
+      startCountdown();
     };
 
     if (el.requestFullscreen) {
@@ -167,149 +226,72 @@
     } else {
       enterFullscreen();
     }
-  }
 
-  // ---------- GÜRÜLTÜ EFEKTİ (NOISE) ----------
-  const noiseCanvas = document.getElementById("noise");
-  const noiseCtx = noiseCanvas.getContext("2d");
-
-  function resizeNoise() {
-    noiseCanvas.width = window.innerWidth;
-    noiseCanvas.height = window.innerHeight;
-  }
-
-  function generateNoise() {
-    const imgData = noiseCtx.createImageData(noiseCanvas.width, noiseCanvas.height);
-    const data = imgData.data;
-    for (let i = 0; i < data.length; i += 4) {
-      const val = Math.random() * 255;
-      data[i] = data[i + 1] = data[i + 2] = val;
-      data[i + 3] = 100; // Şeffaflık
-    }
-    noiseCtx.putImageData(imgData, 0, 0);
-    requestAnimationFrame(generateNoise);
-  }
-
-  window.addEventListener("resize", resizeNoise);
-  resizeNoise();
-  generateNoise();
-
-  // ---------- FLASH IŞIĞI (MOBİL) ----------
-  async function toggleFlash(enable) {
-    if (!("mediaDevices" in navigator) || !("getUserMedia" in navigator.mediaDevices)) {
-      console.log("Flash desteklenmiyor.");
-      return;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: "environment",
-          advanced: [{ torch: enable }]
-        }
-      });
-
-      if (enable) {
-        const track = stream.getVideoTracks()[0];
-        window.flashTrack = track; // Globalde sakla
-      } else {
-        if (window.flashTrack) {
-          window.flashTrack.stop();
-          delete window.flashTrack;
-        }
+    // Tam ekrandan çıkışı engelle (15 saniye boyunca)
+    document.addEventListener("keydown", blockExit, false);
+    function blockExit(e) {
+      if (e.key === "Escape") {
+        e.preventDefault();
       }
-    } catch (err) {
-      console.log("Flash erişimi reddedildi:", err);
     }
   }
 
-  // ---------- TİTREŞİM (MOBİL) ----------
-  function vibrate(pattern) {
-    if ("vibrate" in navigator) {
-      navigator.vibrate(pattern);
-    }
-  }
+  // ---------- GERİ SAYIM (15 SANİYE) ----------
+  function startCountdown() {
+    const countdownElement = document.getElementById("countdown");
+    const logsElement = document.getElementById("dynamic-logs");
+    const finalMessage = document.getElementById("final-message");
+    let countdown = 15;
 
-  // ---------- SES EFEKTİ ----------
-  function playErrorSound() {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioCtx.createOscillator();
-    oscillator.type = "sawtooth";
-    oscillator.frequency.setValueAtTime(500, audioCtx.currentTime);
-    oscillator.connect(audioCtx.destination);
-    oscillator.start();
-    oscillator.stop(audioCtx.currentTime + 0.5);
-  }
-
-  // ---------- ANA SİMÜLASYON ----------
-  function startErrorSimulation() {
     const logs = [
-      "⚠ KRİTİK HATA: #INVALID_ERROR_554",
-      "Sistem dosyaları siliniyor...",
-      "Boot sektörü bozuldu!",
-      "CPU aşırı ısındı...",
-      "Bellek sızıntısı tespit edildi!",
-      "Veritabanı şifreleniyor...",
+      "⚠ KRİTİK HATA: SİSTEM KİLİTLİ!",
+      "Boot sektörü bozuldu...",
+      "Veriler şifreleniyor...",
       "Ağ bağlantısı kesildi!",
+      "CPU aşırı ısındı!",
+      "Bellek sızıntısı tespit edildi!",
       "Yedekleme başarısız!",
       "Sistem kurtarma başlatılıyor...",
-      "⚠ TÜM VERİLER KAYBEDİLİYOR ⚠"
+      "⚠ TÜM VERİLER KAYBEDİLİYOR ⚠",
+      "Lütfen bekleyin...",
+      "Güvenlik protokolleri devrede...",
+      "15 saniye içinde sistem sıfırlanacak!",
+      "⚠ PANİK YAPMAYIN! ⚠",
+      "Bu bir simülasyondur...",
+      "Gerçek değil..."
     ];
 
-    const logElement = document.getElementById("dynamic-logs");
-    const countdownElement = document.getElementById("countdown");
-    let countdown = 10;
-    let logIndex = 0;
-
-    // Korkutucu logları yazdır
-    const logInterval = setInterval(() => {
-      if (logIndex < logs.length) {
-        const p = document.createElement("p");
-        p.textContent = logs[logIndex++];
-        logElement.appendChild(p);
-        playErrorSound();
-        vibrate([100, 50, 100]); // Titreşim
-      }
-    }, 800);
-
-    // Flash ışığını 4 kez yak/söndür
-    const flashInterval = setInterval(() => {
-      toggleFlash(true);
-      setTimeout(() => toggleFlash(false), 300);
-    }, 1000);
-
-    // Geri sayım
     const countdownInterval = setInterval(() => {
       countdown--;
       countdownElement.textContent = countdown;
-      vibrate(100); // Her sayıda titreşim
 
       if (countdown <= 0) {
-        clearInterval(logInterval);
-        clearInterval(flashInterval);
         clearInterval(countdownInterval);
-
-        // Rahatlatıcı mesaj
-        logElement.innerHTML = `
-          <p style="color: #00ff00;">🔄 SİSTEM KURTARILDI!</p>
-          <p style="color: #00ff00;">Bu sadece bir simülasyondu.</p>
-          <p style="color: #00ff00;">Telefonunuz güvende. 😊</p>
-        `;
+        errorSound.pause(); // Ses durdur
+        finalMessage.style.display = "block";
+        document.getElementById("countdown-screen").style.display = "none";
 
         // Tam ekrandan çık
         if (document.exitFullscreen) {
           document.exitFullscreen();
         } else if (document.webkitExitFullscreen) {
           document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) {
-          document.msExitFullscreen();
         }
 
-        // 3 saniye sonra sayfayı kapat (isteğe bağlı)
+        // 3 saniye sonra sayfayı sıfırla
         setTimeout(() => {
-          document.getElementById("error-screen").style.display = "none";
-          document.getElementById("fullscreen-prompt").style.display = "flex";
+          location.reload();
         }, 3000);
+      } else {
+        // Her saniye yeni bir log ekle
+        if (countdown <= logs.length) {
+          const log = document.createElement("p");
+          log.textContent = logs[countdown - 1];
+          log.style.color = "#ff0000";
+          log.style.fontSize = "1.2em";
+          log.style.margin = "5px 0";
+          logsElement.appendChild(log);
+        }
       }
     }, 1000);
   }
