@@ -3,342 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>⚠ KRİTİK SİSTEM HATASI ⚠</title>
+    <title>🚨 SİSTEM KRİTİK 🚨</title>
     <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: #000;
-            font-family: 'Courier New', monospace;
-            color: #ff0000;
-            cursor: none;
-            user-select: none;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { 
+            width: 100%; height: 100%; overflow: hidden; 
+            background: #000; font-family: 'Courier New', monospace;
+            user-select: none; -webkit-user-select: none;
+            touch-action: none; cursor: none;
         }
 
-        #error-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            z-index: -1;
-            overflow: hidden;
+        /* Hata Yağmuru */
+        canvas { position: fixed; top: 0; left: 0; z-index: 1; opacity: 0.6; }
+
+        /* Ana Arayüz */
+        #ui-wrapper {
+            position: relative; z-index: 10; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center;
+            align-items: center; background: rgba(0, 0, 0, 0.7);
+            color: #ff0000; text-align: center;
         }
 
-        #error-logs {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            font-size: 12px;
-            color: #ff0000;
-            text-shadow: 0 0 5px #ff0000;
-            white-space: pre;
-            animation: scroll-logs 5s linear infinite;
-            pointer-events: none;
-            opacity: 0.8;
+        .alert-container {
+            border: 4px double #ff0000; padding: 40px;
+            background: rgba(20, 0, 0, 0.9);
+            box-shadow: 0 0 100px #ff0000;
+            max-width: 85%; animation: shake 0.1s infinite;
         }
 
-        @keyframes scroll-logs {
-            0% { transform: translateY(100%); }
-            100% { transform: translateY(-100%); }
+        h1 { font-size: 2.5rem; text-shadow: 0 0 20px red; margin-bottom: 15px; }
+        p { font-size: 1.1rem; margin: 10px 0; color: #fff; }
+
+        .btn-panic {
+            background: #ff0000; color: #fff; border: 4px solid #fff;
+            padding: 20px 40px; font-size: 1.4rem; font-weight: bold;
+            margin-top: 30px; cursor: none; animation: pulse 1s infinite;
         }
 
-        #fullscreen-prompt {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            background: rgba(0, 0, 0, 0.8);
+        /* Geri Sayım Ekranı */
+        #lockdown-screen {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 99999; color: #ff0000;
+            flex-direction: column; justify-content: center; align-items: center;
         }
 
-        #main-error h1 {
-            font-size: 2.5em;
-            color: #ff0000;
-            text-shadow: 0 0 10px #ff0000;
-            animation: flicker 1.5s infinite;
-            margin-bottom: 20px;
-        }
+        #timer { font-size: 12rem; font-weight: bold; text-shadow: 0 0 40px red; }
+        #log-terminal { font-size: 0.9rem; margin-top: 20px; color: #888; text-align: left; width: 300px; }
 
-        #main-error p {
-            font-size: 1.2em;
-            color: #ff5555;
-            margin: 10px 0;
-        }
-
-        @keyframes flicker {
-            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
-            20%, 24%, 55% { opacity: 0.6; }
-        }
-
+        /* Efektler */
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-5px); }
-            40%, 80% { transform: translateX(5px); }
+            0% { transform: translate(1px, 1px); }
+            50% { transform: translate(-2px, -1px); }
+            100% { transform: translate(1px, 2px); }
         }
-
-        .shake {
-            animation: shake 0.1s infinite;
-        }
-
-        #fake-button {
-            display: inline-block;
-            padding: 15px 30px;
-            background: #00ff00;
-            color: #000;
-            font-weight: bold;
-            margin: 30px 0;
-            cursor: pointer;
-            border: 3px solid #fff;
-            font-family: 'Courier New', monospace;
-            font-size: 1.2em;
-            border-radius: 5px;
-            box-shadow: 0 0 10px #00ff00;
-            animation: pulse 1s infinite;
-        }
-
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        #countdown-screen {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            z-index: 9998;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        #countdown {
-            font-size: 4em;
-            color: #ff0000;
-            text-shadow: 0 0 10px #ff0000;
-            margin-bottom: 20px;
-        }
-
-        #dynamic-logs {
-            color: #ff0000;
-            font-size: 1.2em;
-            text-align: center;
-        }
-
-        #final-message {
-            display: none;
-            text-align: center;
-            color: #00ff00;
-            font-size: 1.5em;
-            margin-top: 20px;
-            animation: fadeIn 2s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            0% { transform: scale(1); box-shadow: 0 0 10px red; }
+            50% { transform: scale(1.1); box-shadow: 0 0 40px red; }
+            100% { transform: scale(1); box-shadow: 0 0 10px red; }
         }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
-<div id="error-background">
-    <div id="error-logs">
-ERROR_554: System corruption detected
-BOOT_FAILURE: Unable to load kernel
-MEMORY_LEAK: Critical process terminated
-SECURITY_BREACH: Unauthorized access
-ERROR_554: System corruption detected
-BOOT_FAILURE: Unable to load kernel
-MEMORY_LEAK: Critical process terminated
-SECURITY_BREACH: Unauthorized access
-ERROR_554: System corruption detected
-BOOT_FAILURE: Unable to load kernel
-MEMORY_LEAK: Critical process terminated
-SECURITY_BREACH: Unauthorized access
-ERROR_554: System corruption detected
-BOOT_FAILURE: Unable to load kernel
-MEMORY_LEAK: Critical process terminated
-SECURITY_BREACH: Unauthorized access
+    <canvas id="matrix"></canvas>
+
+    <div id="ui-wrapper">
+        <div class="alert-container">
+            <h1>SİSTEM İHLALİ ALGILANDI</h1>
+            <p>Bilinmeyen bir protokol kernel seviyesine sızdı.</p>
+            <p>Donanım bütünlüğü tehlikede: <span id="percent">0</span>%</p>
+            <button class="btn-panic" onclick="initiateLockdown()">PROTOKOLÜ DURDUR</button>
+        </div>
     </div>
-</div>
 
-<div id="fullscreen-prompt">
-    <div id="main-error">
-        <h1 class="shake">⚠ VİRÜS ALGILANDI! ⚠</h1>
-        <p>Sistem dosyaları siliniyor...</p>
-        <p>#INVALID_ERROR_554</p>
-        <div id="fake-button" onclick="startFullscreen()">ACİL GÜVENLİK ÖNLEMİ</div>
+    <div id="lockdown-screen">
+        <h2>SİSTEM ÖZ-YIKIM MODU</h2>
+        <div id="timer">15</div>
+        <div id="log-terminal"></div>
+        <p style="margin-top: 50px; font-size: 0.8rem;">GÜVENLİ ÇIKIŞ ENGELLENDİ</p>
     </div>
-</div>
 
-<div id="countdown-screen">
-    <div id="countdown">15</div>
-    <div id="dynamic-logs"></div>
-</div>
+    <script>
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        const percentEl = document.getElementById('percent');
+        const logTerm = document.getElementById('log-terminal');
 
-<div id="final-message">
-    <p>🔄 SİSTEM KURTARILDI!</p>
-    <p>Bu sadece bir şaka.</p>
-    <p>Telefonunuz güvende. 😊</p>
-</div>
+        // 1. Matrix Hata Yağmuru (Dikey ve Akışkan)
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const errorCodes = "ERROR_CRITICAL_FAILURE_ACCESS_DENIED_0101_BIOS_WIPE_FATAL";
+        const columns = canvas.width / 20;
+        const drops = Array.from({ length: columns }).fill(1);
 
-<audio id="error-sound" loop>
-    <source src="data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU..." type="audio/wav">
-</audio>
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#f00";
+            ctx.font = "15px monospace";
 
-<script>
-    // ---------- SES AYARLARI (KAPATILAMAZ, SABİT ORTA DÜZEY) ----------
-    const errorSound = document.getElementById("error-sound");
-    errorSound.volume = 0.5; // Orta seviye
-    errorSound.loop = true;
-
-    // Base64 alarm sesi (kısaltılmış, gerçek kodda tam base64 olacak)
-    errorSound.src = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU...";
-
-    // Ses başlat
-    errorSound.play().catch(e => console.log("Ses oynatma hatası:", e));
-
-    // Sesin kapatılmasını engelle
-    document.addEventListener("visibilitychange", () => {
-        if (document.hidden) {
-            errorSound.play().catch(e => console.log("Ses tekrar başlatıldı:", e));
+            drops.forEach((y, i) => {
+                const text = errorCodes[Math.floor(Math.random() * errorCodes.length)];
+                ctx.fillText(text, i * 20, y * 15);
+                if (y * 15 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            });
         }
-    });
+        setInterval(drawMatrix, 40);
 
-    // ---------- TAM EKRAN MODU (ÇIKIŞ ENGELLENİYOR) ----------
-    function startFullscreen() {
-        const el = document.documentElement;
-        const prompt = document.getElementById("fullscreen-prompt");
-        const countdownScreen = document.getElementById("countdown-screen");
+        // 2. Tarayıcı Hapsi ve Kısayol Engelleme
+        function trapUser() {
+            // Geri tuşunu boz
+            history.pushState(null, null, location.href);
+            window.onpopstate = () => history.go(1);
 
-        const enterFullscreen = () => {
-            prompt.style.display = "none";
-            countdownScreen.style.display = "flex";
-            startCountdown();
-        };
+            // Çıkış uyarısı
+            window.onbeforeunload = () => "Sistem imha ediliyor, ayrılamazsınız!";
 
-        if (el.requestFullscreen) {
-            el.requestFullscreen().then(enterFullscreen).catch(enterFullscreen);
-        } else if (el.webkitRequestFullscreen) {
-            el.webkitRequestFullscreen();
-            enterFullscreen();
-        } else if (el.msRequestFullscreen) {
-            el.msRequestFullscreen();
-            enterFullscreen();
-        } else {
-            enterFullscreen();
-        }
-
-        // Tam ekrandan çıkışı engelle (15 saniye boyunca)
-        document.addEventListener("keydown", blockExit, false);
-        document.addEventListener("fullscreenchange", handleFullscreenChange);
-
-        function blockExit(e) {
-            if (e.key === "Escape") {
+            // Tuşları engelle (F12, Ctrl+S, Alt vb.)
+            document.addEventListener('keydown', (e) => {
                 e.preventDefault();
-            }
+                return false;
+            });
         }
 
-        function handleFullscreenChange() {
-            if (!document.fullscreenElement) {
-                // Tam ekrandan çıkılmaya çalışıldıysa tekrar tam ekrana geç
-                if (el.requestFullscreen) {
-                    el.requestFullscreen().catch(() => {});
-                }
-            }
+        // 3. Ses Motoru (Psikolojik Panik Tonu)
+        let audioCtx;
+        function playScaryTones() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc1 = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc1.type = 'sawtooth'; osc2.type = 'square';
+            osc1.frequency.setValueAtTime(50, audioCtx.currentTime); // Derin bas
+            osc2.frequency.setValueAtTime(55, audioCtx.currentTime); // Rahatsız edici vuruş
+
+            osc1.connect(gain); osc2.connect(gain);
+            gain.connect(audioCtx.destination);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            
+            osc1.start(); osc2.start();
         }
-    }
 
-    // ---------- GERİ SAYIM (15 SANİYE) ----------
-    function startCountdown() {
-        const countdownElement = document.getElementById("countdown");
-        const logsElement = document.getElementById("dynamic-logs");
-        const finalMessage = document.getElementById("final-message");
-        let countdown = 15;
+        // 4. Lockdown Başlatma
+        function initiateLockdown() {
+            trapUser();
+            if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+            if (document.documentElement.requestPointerLock) document.documentElement.requestPointerLock();
+            
+            document.getElementById('ui-wrapper').style.display = 'none';
+            document.getElementById('lockdown-screen').style.display = 'flex';
+            
+            playScaryTones();
+            startCountdown();
+        }
 
-        const logs = [
-            "⚠ KRİTİK HATA: SİSTEM KİLİTLİ!",
-            "Boot sektörü bozuldu...",
-            "Veriler şifreleniyor...",
-            "Ağ bağlantısı kesildi!",
-            "CPU aşırı ısındı!",
-            "Bellek sızıntısı tespit edildi!",
-            "Yedekleme başarısız!",
-            "Sistem kurtarma başlatılıyor...",
-            "⚠ TÜM VERİLER KAYBEDİLİYOR ⚠",
-            "Lütfen bekleyin...",
-            "Güvenlik protokolleri devrede...",
-            "15 saniye içinde sistem sıfırlanacak!",
-            "⚠ PANİK YAPMAYIN! ⚠",
-            "Bu bir simülasyondur...",
-            "Gerçek değil..."
-        ];
+        function startCountdown() {
+            let time = 15;
+            const logs = [
+                "> Root yetkisi alındı.", "> CPU voltajı artırılıyor...", 
+                "> Fan kontrolü devre dışı.", "> Sabit disk verileri şifreleniyor...",
+                "> RAM boşaltılıyor...", "> Kamera aktif ediliyor...",
+                "> Konum verileri gönderildi.", "> Elveda."
+            ];
 
-        const countdownInterval = setInterval(() => {
-            countdown--;
-            countdownElement.textContent = countdown;
-
-            if (countdown <= 0) {
-                clearInterval(countdownInterval);
-                errorSound.pause();
-                finalMessage.style.display = "block";
-                document.getElementById("countdown-screen").style.display = "none";
-
-                // Tam ekrandan çık
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
+            const interval = setInterval(() => {
+                time--;
+                document.getElementById('timer').innerText = time;
+                
+                // Sahte Loglar
+                if (time % 2 === 0) {
+                    const p = document.createElement('p');
+                    p.innerText = logs[Math.floor(Math.random()*logs.length)];
+                    logTerm.prepend(p);
                 }
 
-                // 3 saniye sonra sayfayı sıfırla
-                setTimeout(() => {
-                    location.reload();
-                }, 3000);
-            } else {
-                // Her saniye yeni bir log ekle
-                if (countdown <= logs.length) {
-                    const log = document.createElement("p");
-                    log.textContent = logs[countdown - 1];
-                    log.style.color = "#ff0000";
-                    log.style.fontSize = "1.2em";
-                    log.style.margin = "5px 0";
-                    logsElement.appendChild(log);
+                // Ekran Glitch
+                if (Math.random() > 0.8) {
+                    document.body.style.filter = "invert(1)";
+                    setTimeout(() => document.body.style.filter = "none", 50);
                 }
-            }
-        }, 1000);
-    }
 
-    // ---------- TELEFONU KAPATMAYI ENGELLE (MOBİL) ----------
-    window.addEventListener("beforeunload", (e) => {
-        e.preventDefault();
-        e.returnValue = "Sistem kurtarma işlemi devam ediyor! Telefonu kapatmayın!";
-        return e.returnValue;
-    });
+                if (time <= 0) {
+                    clearInterval(interval);
+                    showEnd();
+                }
+            }, 1000);
+        }
 
-    // ---------- GERİ TUŞUNU ENGELLE (MOBİL) ----------
-    history.pushState(null, null, location.href);
-    window.addEventListener("popstate", () => {
-        history.pushState(null, null, location.href);
-    });
-</script>
+        function showEnd() {
+            if (audioCtx) audioCtx.close();
+            document.exitPointerLock();
+            document.body.innerHTML = `
+                <div style="background:#fff; color:#000; height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
+                    <h1 style="font-size:4rem; color:green;">✅ SİSTEM ONARILDI</h1>
+                    <p style="color:#000">Korkma, bu sadece bir web simülasyonuydu.</p>
+                    <p style="color:#000">Cihazın ve verilerin tamamen güvende.</p>
+                    <button onclick="location.reload()" style="padding:20px; cursor:pointer; margin-top:20px;">KAPAT</button>
+                </div>
+            `;
+        }
 
+        // Yüzde artış simülasyonu
+        let p = 0;
+        setInterval(() => { if(p<99) { p++; percentEl.innerText = p; } }, 40);
+    </script>
 </body>
 </html>
