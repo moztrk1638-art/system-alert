@@ -3,151 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SİSTEM HATASI</title>
+    <title>⚠️ SİSTEM İMHASI ⚠️</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { 
             width: 100%; height: 100%; overflow: hidden; background: #000;
-            font-family: 'Courier New', monospace;
-            pointer-events: none; 
+            font-family: 'Courier New', monospace; pointer-events: none; 
         }
 
-        canvas { position: fixed; top: 0; left: 0; z-index: 1; opacity: 0.8; }
+        canvas { position: fixed; top: 0; left: 0; z-index: 1; }
 
         #ui-layer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 100; display: flex; flex-direction: column;
             justify-content: center; align-items: center;
-            background: rgba(0, 0, 0, 0.85); color: #ff0000; text-align: center;
+            background: rgba(0, 0, 0, 0.8); color: #ff0000; text-align: center;
         }
 
-        .alert-box {
-            border: 5px solid #ff0000; padding: 30px; background: #0a0000;
-            box-shadow: 0 0 100px #ff0000; width: 90%;
-            animation: shake 0.1s infinite;
-            pointer-events: auto; 
+        .terminal-box {
+            border: 4px solid #ff0000; padding: 25px; background: #050000;
+            box-shadow: 0 0 80px #ff0000; width: 90%;
+            animation: vibe 0.05s infinite; pointer-events: auto;
         }
 
-        h1 { font-size: 1.8rem; text-shadow: 0 0 20px red; }
-        
-        /* Acil Çıkış Alanı: Sayaca basılı tutulunca aktif olur */
+        #target-info {
+            text-align: left; font-size: 0.8rem; color: #0f0; 
+            margin-bottom: 20px; border-bottom: 1px solid #0f0; padding-bottom: 10px;
+        }
+
         #timer { 
-            font-size: 25vw; font-weight: bold; margin: 10px 0; 
-            user-select: none; -webkit-user-select: none;
+            font-size: 28vw; font-weight: bold; margin: 5px 0; 
+            text-shadow: 0 0 30px #f00; user-select: none;
         }
 
-        button {
-            background: #ff0000; color: #fff; border: 4px solid #fff;
-            padding: 15px 30px; font-size: 1.2rem; font-weight: bold;
-            margin-top: 20px; pointer-events: auto;
+        .status-msg { font-size: 1rem; color: #fff; text-transform: uppercase; margin: 10px 0; }
+
+        #action-btn {
+            background: #f00; color: #fff; border: 2px solid #fff;
+            padding: 15px 30px; font-size: 1.1rem; font-weight: bold;
+            margin-top: 20px; pointer-events: auto; animation: pulse 1s infinite;
         }
 
-        @keyframes shake {
-            0% { transform: translate(1px, -1px); }
-            50% { transform: translate(-1px, 1px) scale(1.01); }
-            100% { transform: translate(1px, 1px); }
+        @keyframes vibe {
+            0% { transform: translate(1px, 1px); }
+            50% { transform: translate(-1px, -1px); }
+            100% { transform: translate(1px, -1px); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
 
         #blocker {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 99999; display: none; background: transparent;
-            pointer-events: auto;
+            z-index: 99999; display: none; pointer-events: auto;
         }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
-<canvas id="matrix"></canvas>
+<canvas id="bg-canvas"></canvas>
 <div id="blocker"></div>
 
 <div id="ui-layer">
-    <div class="alert-box" id="content">
-        <h1>⚠️ DONANIM İHLALİ ⚠️</h1>
-        <p style="color:white; margin-top:10px; font-size: 0.9rem;">Kernel seviyesinde sızıntı algılandı.<br>Dosya bütünlüğü bozuluyor...</p>
-        
+    <div class="terminal-box">
+        <div id="target-info">
+            > HEDEF_IP: <span id="ip">YÜKLENİYOR...</span><br>
+            > CİHAZ: <span id="model">TESPİT EDİLİYOR...</span><br>
+            > DURUM: SIZILDI
+        </div>
+        <h1 style="font-size: 1.2rem;">☢️ KRİTİK VERİ SIZINTISI ☢️</h1>
         <div id="timer">15</div>
-        
-        <button id="action-btn" onclick="startTrap()">ACİL KURTARMA</button>
+        <p class="status-msg" id="status">BÜTÜNLEŞİK BELLEK SİLİNİYOR...</p>
+        <button id="action-btn" onclick="ignite()">ERİŞİMİ KES</button>
     </div>
 </div>
 
 <script>
-    const canvas = document.getElementById('matrix');
+    const canvas = document.getElementById('bg-canvas');
     const ctx = canvas.getContext('2d');
     const timerEl = document.getElementById('timer');
+    const statusEl = document.getElementById('status');
     const btn = document.getElementById('action-btn');
     const blocker = document.getElementById('blocker');
+    
     let audioCtx;
     let timeLeft = 15;
-    let emergencyTimer;
+    let emergencyHandler;
 
-    // 1. HAFIZA KONTROLÜ
-    if(localStorage.getItem('prank_active')) {
-        timeLeft = parseInt(localStorage.getItem('prank_time')) || 15;
+    // 1. IP VE CİHAZ BİLGİSİ
+    async function getSpecs() {
+        // IP Adresini çek
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            document.getElementById('ip').innerText = data.ip;
+        } catch { document.getElementById('ip').innerText = "192.168.1." + Math.floor(Math.random()*255); }
+
+        // Cihaz Modeli Tahmini
+        const ua = navigator.userAgent;
+        let model = "Mobil Cihaz";
+        if (ua.match(/iPhone/i)) model = "iPhone";
+        else if (ua.match(/Samsung/i)) model = "Samsung Galaxy";
+        else if (ua.match(/Android/i)) model = "Android Terminal";
+        document.getElementById('model').innerText = model;
+    }
+    getSpecs();
+
+    // 2. HAFIZA SİSTEMİ
+    if(localStorage.getItem('void_active')) {
+        timeLeft = parseInt(localStorage.getItem('void_time')) || 15;
         setTimeout(() => {
-            alert("KAÇIŞ GİRİŞİMİ ENGELLENDİ. SİSTEM KİLİTLİ.");
-            startTrap();
-        }, 500);
+            alert("SİSTEMDEN KAÇAMAZSIN. İMHA DEVAM EDİYOR.");
+            ignite();
+        }, 600);
     }
 
-    // 2. MATRIX ARKA PLAN
+    // 3. MATRIX YAĞMURU (Gelişmiş)
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    const chars = "ERROR_FATAL_666_FAILURE_SYSTEM_WIPE";
-    const drops = Array(Math.floor(canvas.width / 20)).fill(1);
+    const codes = "ERROR01VOIDNULLFATAL666";
+    const columns = canvas.width / 20;
+    const drops = Array(Math.floor(columns)).fill(1);
 
-    function drawMatrix() {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+    function draw() {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#f00";
+        ctx.fillStyle = "#ff0000";
         ctx.font = "20px monospace";
         drops.forEach((y, i) => {
-            const text = chars[Math.floor(Math.random() * chars.length)];
+            const text = codes[Math.floor(Math.random() * codes.length)];
             ctx.fillText(text, i * 20, y * 20);
             if (y * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
             drops[i]++;
         });
     }
-    setInterval(drawMatrix, 35);
+    setInterval(draw, 30);
 
-    // 3. ACİL ÇIKIŞ MEKANİZMASI (Hidden Backdoor)
-    // Sayacın üzerine 3 saniye basılı tutulursa şaka biter.
-    function resetEverything() {
-        timeLeft = 0;
-        localStorage.clear();
-        showSuccess();
-    }
-
-    timerEl.addEventListener('mousedown', () => emergencyTimer = setTimeout(resetEverything, 3000));
-    timerEl.addEventListener('touchstart', () => emergencyTimer = setTimeout(resetEverything, 3000));
-    timerEl.addEventListener('mouseup', () => clearTimeout(emergencyTimer));
-    timerEl.addEventListener('touchend', () => clearTimeout(emergencyTimer));
-
-    // 4. KORKUTUCU SES
-    function playHorrorSound() {
-        if (audioCtx) return;
+    // 4. SES MOTORU (Dehşet Verici)
+    function playHorror() {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(40, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
+        osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 15);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        osc.connect(gain); gain.connect(audioCtx.destination);
         osc.start();
     }
 
-    // 5. TUZAK BAŞLATMA
-    function startTrap() {
-        playHorrorSound();
+    // 5. ANA TETİKLEYİCİ
+    function ignite() {
+        playHorror();
         btn.style.display = 'none';
         blocker.style.display = 'block';
-        localStorage.setItem('prank_active', 'true');
-        
-        if (document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen().catch(() => {});
-        }
+        localStorage.setItem('void_active', 'true');
+        if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
 
         const countdown = setInterval(() => {
             if(timeLeft <= 0) {
@@ -156,43 +170,52 @@
             }
             timeLeft--;
             timerEl.innerText = timeLeft;
-            localStorage.setItem('prank_time', timeLeft);
+            localStorage.setItem('void_time', timeLeft);
 
-            // Glitch efekti
+            if(timeLeft % 3 === 0) statusEl.innerText = "VERİ PAKETLERİ SİLİNİYOR...";
+            if(timeLeft % 3 === 1) statusEl.innerText = "ROOT ERİŞİMİ KAPATILIYOR...";
+
             if(Math.random() > 0.8) {
-                document.body.style.filter = "invert(1)";
+                document.body.style.filter = "invert(1) blur(2px)";
                 setTimeout(() => document.body.style.filter = "none", 50);
             }
 
-            if (timeLeft <= 0) {
+            if(timeLeft <= 0) {
                 clearInterval(countdown);
                 localStorage.clear();
-                showSuccess();
+                finish();
             }
         }, 1000);
     }
 
-    function showSuccess() {
+    // 6. ACİL ÇIKIŞ (Backdoor)
+    function stopPrank() {
+        timeLeft = 0;
+        localStorage.clear();
+        finish();
+    }
+    timerEl.addEventListener('touchstart', () => emergencyHandler = setTimeout(stopPrank, 3000));
+    timerEl.addEventListener('touchend', () => clearTimeout(emergencyHandler));
+
+    // BİTİŞ (İlk koddaki gibi)
+    function finish() {
         if(audioCtx) audioCtx.close();
         blocker.style.display = 'none';
         document.body.style.pointerEvents = 'auto';
-        document.body.style.filter = "none";
-        
         document.body.innerHTML = `
             <div style="background:white; color:black; height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px;">
-                <h1 style="font-size:4rem;">🔄</h1>
-                <h1 style="color:green; font-size:2.5rem;">SİSTEM KURTARILDI</h1>
-                <p style="font-size:1.1rem; margin-top:10px;">Endişelenmeyin, bu sadece bir güvenlik simülasyonuydu.</p>
-                <p style="color:#666; margin-top:5px;">Cihazınız %100 güvende. 😊</p>
-                <button onclick="location.reload()" style="background:black; color:white; padding:15px 30px; border-radius:10px; cursor:pointer; margin-top:30px; border:none;">BAŞA DÖN</button>
+                <h1 style="font-size:5rem;">😜</h1>
+                <h1 style="color:green; font-size:2.5rem;">ŞAKA YAPTIM!</h1>
+                <p style="font-size:1.1rem; margin-top:10px;">Cihazın ve verilerin güvende.</p>
+                <p style="color:#666;">Sadece bir tarayıcı testiydi.</p>
+                <button onclick="location.reload()" style="background:#000; color:#fff; padding:15px 30px; border-radius:10px; margin-top:30px; border:none;">DÜZELT</button>
             </div>
         `;
     }
 
-    // Geri tuşu engeli
+    // Geri tuşu hapsi
     history.pushState(null, null, location.href);
     window.onpopstate = () => history.go(1);
 </script>
-
 </body>
 </html>
