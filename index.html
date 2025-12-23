@@ -2,210 +2,195 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>System Alert Simulation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Malfunction</title>
 
 <style>
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: #000;
-  font-family: 'Courier New', Courier, monospace;
-  color: #ff0000;
-  cursor: none;
+html,body{
+  margin:0;padding:0;width:100%;height:100%;
+  background:#000;color:#ff1b1b;
+  font-family:'Courier New',monospace;
+  overflow:hidden;
 }
 
-:fullscreen,
-:-webkit-full-screen,
-:-moz-full-screen,
-:-ms-fullscreen {
-  cursor: none;
+/* ANA KONTEYNER */
+#container{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  text-align:center;
+  z-index:3;
 }
 
-#screen {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  text-align: center;
-  position: relative;
+/* HATA YAZISI */
+#error{
+  font-size:20px;
+  text-shadow:
+    0 0 10px red,
+    2px 0 cyan,
+    -2px 0 magenta;
+  animation:flick 1s infinite alternate;
 }
 
-#log p {
-  margin: 2px 0;
-  font-size: 20px;
-  text-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
-  animation: flicker 1.5s infinite alternate;
+/* TITREME */
+@keyframes flick{
+  0%,100%{opacity:1;}
+  50%{opacity:.6;}
 }
 
-@keyframes flicker {
-  0%,18%,22%,25%,53%,57%,100% { opacity: 1; }
-  20%,24%,55% { opacity: 0.8; }
+/* GERİ SAYIM */
+#counter{
+  position:absolute;
+  bottom:15px;
+  right:15px;
+  font-size:18px;
+  color:#ff4040;
 }
 
-#reveal {
-  display: none;
-  color: #00ff00;
-  font-size: 24px;
-  margin-top: 30px;
-  text-shadow: 0 0 10px #00ff00;
+/* FLASH */
+#flash{
+  position:fixed;
+  inset:0;
+  background:#fff;
+  opacity:0;
+  pointer-events:none;
+  z-index:5;
 }
 
-#noise {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.05;
-  z-index: 1;
+/* NOISE */
+#noise{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:.06;
+  z-index:1;
 }
 
-#screen-content {
-  z-index: 2;
+/* GLITCH KAYMASI */
+.glitch{
+  animation:glitchMove .15s infinite;
+}
+@keyframes glitchMove{
+  0%{transform:translate(0,0);}
+  20%{transform:translate(-2px,1px);}
+  40%{transform:translate(2px,-1px);}
+  60%{transform:translate(-1px,2px);}
+  80%{transform:translate(1px,-2px);}
+  100%{transform:translate(0,0);}
 }
 
-#fullscreen-prompt {
-  position: fixed;
-  inset: 0;
-  background: #000;
-  color: #ff0000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  z-index: 1000;
-  cursor: pointer;
-}
-
-#fullscreen-prompt h1 {
-  font-size: 24px;
-  text-shadow: 0 0 10px #ff0000;
-}
-
-@media (max-width:600px) {
-  #log p { font-size: 16px; }
-  #reveal { font-size: 18px; }
-  #fullscreen-prompt h1 { font-size: 18px; }
+/* SON EKRAN */
+#end{
+  display:none;
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle,#3f003f 10%,#000);
+  justify-content:center;
+  align-items:center;
+  color:#0f0;
+  font-size:26px;
+  text-shadow:0 0 10px #0f0;
+  flex-direction:column;
+  z-index:4;
 }
 </style>
 </head>
 
 <body>
 
-<div id="fullscreen-prompt" onclick="startFullscreen()">
-  <h1>SİSTEM HATASI</h1>
-  <p>DEVAM ETMEK İÇİN EKRANA TIKLA</p>
-</div>
-
 <canvas id="noise"></canvas>
 
-<div id="screen">
-  <div id="screen-content">
-    <div id="log"></div>
-    <div id="reveal"></div>
-  </div>
+<div id="container" class="glitch">
+  <div id="error">⚠ KRİTİK SİSTEM ARIZASI ALGILANDI</div>
+  <div id="counter">10</div>
+</div>
+
+<div id="flash"></div>
+
+<div id="end">
+  <div>😈 ŞAKA 😈<br><small>Tüm sistemler normal.</small></div>
 </div>
 
 <script>
-/* ---------- NOISE (OPTİMİZE) ---------- */
-const noiseCanvas = document.getElementById("noise");
-const noiseCtx = noiseCanvas.getContext("2d");
-let noiseRAF;
-let lastNoiseTime = 0;
-
-function resizeNoise() {
-  noiseCanvas.width = innerWidth;
-  noiseCanvas.height = innerHeight;
-}
-addEventListener("resize", resizeNoise);
-resizeNoise();
-
-function generateNoise(timestamp) {
-  if (timestamp - lastNoiseTime > 80) { // ~12 FPS
-    const img = noiseCtx.createImageData(noiseCanvas.width, noiseCanvas.height);
-    const d = img.data;
-    for (let i = 0; i < d.length; i += 4) {
-      const v = Math.random() * 255;
-      d[i] = d[i+1] = d[i+2] = v;
-      d[i+3] = 255;
-    }
-    noiseCtx.putImageData(img, 0, 0);
-    lastNoiseTime = timestamp;
-  }
-  noiseRAF = requestAnimationFrame(generateNoise);
-}
-noiseRAF = requestAnimationFrame(generateNoise);
-
 /* ---------- FULLSCREEN ---------- */
-function startFullscreen() {
-  const el = document.documentElement;
-  const done = () => {
-    document.getElementById("fullscreen-prompt").style.display = "none";
-    runMainAnimation();
-  };
-
-  if (el.requestFullscreen) {
-    el.requestFullscreen().then(done).catch(done);
-  } else if (el.webkitRequestFullscreen) {
-    el.webkitRequestFullscreen(); done();
-  } else if (el.msRequestFullscreen) {
-    el.msRequestFullscreen(); done();
-  } else {
-    done();
-  }
+function goFullscreen(){
+  const el=document.documentElement;
+  if(el.requestFullscreen) el.requestFullscreen();
+  else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
 }
+goFullscreen();
 
-/* ---------- ANA METİNLER (DOKUNULMADI) ---------- */
-function runMainAnimation() {
-  const log = document.getElementById("log");
-  const lines = [
-    "⚠ SİSTEM KARARLILIĞI YITIRILDI",
-    "Kernel panik simülasyonu...",
-    "Bellek haritası bozuldu...",
-    "İş parçacığı yürütme uyuşmazlığı",
-    "Kritik hata tespit edildi",
-    "Kurtarma deneniyor...",
-    "SİSTEM ÇÖKMESİ ÖNLENEMİYOR",
-    "BIOS ERİŞİMİ REDDEDİLDİ",
-    "BOOT SEKTÖRÜ BOZUK",
-    "TÜM VERİ KAYBEDİLECEK..."
-  ];
+/* ---------- NOISE (OPTİMİZE) ---------- */
+const canvas=document.getElementById("noise");
+const ctx=canvas.getContext("2d");
+let lastNoise=0;
 
-  let i = 0;
-  const typer = setInterval(() => {
-    if (i < lines.length) {
-      const p = document.createElement("p");
-      p.textContent = lines[i++];
-      log.appendChild(p);
-    } else {
-      clearInterval(typer);
-      document.getElementById("reveal").style.display = "block";
-      document.getElementById("reveal").innerHTML =
-        "😄 RAHAT OL<br>BU ZARARSIZ BİR SİMÜLASYON";
-      cancelAnimationFrame(noiseRAF);
+function resize(){
+  canvas.width=innerWidth;
+  canvas.height=innerHeight;
+}
+addEventListener("resize",resize);
+resize();
+
+function noise(t){
+  if(t-lastNoise>80){ // ~12 FPS
+    const img=ctx.createImageData(canvas.width,canvas.height);
+    const d=img.data;
+    for(let i=0;i<d.length;i+=4){
+      const v=Math.random()*255;
+      d[i]=d[i+1]=d[i+2]=v;
+      d[i+3]=255;
     }
-  }, 600);
+    ctx.putImageData(img,0,0);
+    lastNoise=t;
+  }
+  requestAnimationFrame(noise);
 }
+requestAnimationFrame(noise);
 
-/* ---------- GLITCH (HAFİFLETİLDİ) ---------- */
-function glitch() {
-  const d = document.createElement("div");
-  d.style.cssText = `
-    position:fixed;
-    width:2px;
-    height:2px;
-    background:rgb(${Math.random()*255},${Math.random()*255},${Math.random()*255});
-    left:${Math.random()*100}%;
-    top:${Math.random()*100}%;
-    pointer-events:none;
-    z-index:3;
-  `;
-  document.body.appendChild(d);
-  setTimeout(() => d.remove(), 200);
-}
-setInterval(glitch, 220);
+/* ---------- ANA AKIŞ ---------- */
+let seconds=10;
+const counter=document.getElementById("counter");
+const error=document.getElementById("error");
+const flash=document.getElementById("flash");
+const end=document.getElementById("end");
+const container=document.getElementById("container");
+
+const messages=[
+ "Çekirdek bozuldu...",
+ "Veri yolunda çakışma tespit edildi...",
+ "RAM bozuk sektörler düzeltilemedi...",
+ "GPU bellek taşması...",
+ "SİSTEM HAKİMİYETİ KAYBEDİLDİ...",
+ "SİLİNİYOR..."
+];
+
+let i=0;
+const loop=setInterval(()=>{
+  if(i<messages.length){
+    error.textContent=messages[i++];
+    if(navigator.vibrate) navigator.vibrate([70,40,70]);
+    flash.style.opacity=.7;
+    setTimeout(()=>flash.style.opacity=0,120);
+  }
+},900);
+
+const tick=setInterval(()=>{
+  seconds--;
+  counter.textContent=seconds;
+  if(seconds<=0){
+    clearInterval(loop);
+    clearInterval(tick);
+    document.exitFullscreen?.();
+    document.webkitExitFullscreen?.();
+    container.style.display="none";
+    end.style.display="flex";
+    if(navigator.vibrate) navigator.vibrate([300,150,300]);
+  }
+},1000);
 </script>
 
 </body>
