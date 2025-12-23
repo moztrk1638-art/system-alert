@@ -3,187 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TERMINAL ACCESS</title>
+    <title>SISTEM_KRITIK_DURUM</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Courier New', monospace; }
-        
-        canvas { position: fixed; top: 0; left: 0; z-index: 1; }
+        * { margin:0; padding:0; box-sizing:border-box; overflow:hidden; touch-action:none; }
+        body { background:#000; font-family:'Courier New', monospace; color: #f00; transition: background 0.05s; }
+        canvas { position:fixed; top:0; left:0; z-index:1; }
+        #ui-layer { position:fixed; top:0; left:0; width:100%; height:100%; z-index:100; display:flex; justify-content:center; align-items:center; flex-direction: column; }
 
-        #ui-layer {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 100; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center;
+        /* EKRAN 1: RESMİ TUZAK */
+        .alert-box {
+            width:90%; padding:30px; border:3px double #f00; background:rgba(0,0,0,0.95);
+            text-align:center; box-shadow: 0 0 50px #f00; border-radius: 10px;
+            animation: vibe 0.1s infinite;
         }
 
-        /* Başlangıç Paneli */
-        .init-panel { border: 2px solid #0f0; padding: 30px; background: rgba(0,20,0,0.9); color: #0f0; z-index: 101; }
-        
-        /* İmha Paneli (Gizli) */
-        .breach-panel { 
-            display: none; border: 5px solid #f00; padding: 20px; background: #050000; 
-            color: #f00; box-shadow: 0 0 100px #f00; width: 95%; animation: shake 0.05s infinite;
+        /* EKRAN 2: DEHŞET PANELİ */
+        #step2 { display:none; width:100%; height:100%; position: absolute; z-index: 105; background: #000; }
+        .main-panel {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 95%; padding: 25px; border: 2px solid #fff; background: #000;
         }
 
-        #target-display {
-            text-align: left; font-size: 0.8rem; color: #0f0; margin: 15px 0;
-            padding: 10px; border: 1px dashed #0f0; display: none;
+        /* YILDIRIM GİBİ PATLAYAN METİN */
+        .thunder-text {
+            font-size: 2rem; font-weight: 900; color: #fff; text-shadow: 0 0 30px #fff;
+            display: none; text-align: center; margin: 20px 0;
+            animation: lightning 0.15s infinite;
         }
 
-        #timer { font-size: 25vw; font-weight: bold; text-shadow: 0 0 30px #f00; margin: 10px 0; }
+        #timer { font-size: 30vw; font-weight: 900; color: #fff; text-shadow: 0 0 30px #f00; display:none; }
+        .info-box { text-align: left; font-size: 0.85rem; color: #0f0; border-top: 1px solid #333; padding-top: 10px; line-height: 1.8; }
+        .btn-green { background:#0f0; color:#000; border:none; padding:18px; width:85%; font-size:1.1rem; font-weight:900; border-radius:4px; box-shadow: 0 0 20px #0f0; cursor: pointer; text-transform: uppercase; }
 
-        .green-btn {
-            background: #00ff00; color: #000; border: none; padding: 20px 40px;
-            font-size: 1.2rem; font-weight: bold; cursor: pointer; margin-top: 20px;
-            box-shadow: 0 0 20px #0f0;
+        @keyframes lightning { 
+            0% { opacity: 0; transform: scale(0.95); background: rgba(255,255,255,0); }
+            50% { opacity: 1; transform: scale(1.1); background: rgba(255,255,255,1); }
+            100% { opacity: 0; transform: scale(1); }
         }
-
-        @keyframes shake { 0% {transform:translate(2px,2px);} 50% {transform:translate(-2px,-2px);} 100% {transform:translate(2px,-2px);} }
-        #blocker { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; display: none; pointer-events: auto; }
+        @keyframes vibe { 0%{transform:translate(2px,2px)} 50%{transform:translate(-2px,-2px)} 100%{transform:translate(2px,-2px)} }
+        @keyframes extreme-shake { 0%{transform:translate(-50%,-50%) scale(1.1)} 25%{transform:translate(-53%,-47%) rotate(3deg)} 75%{transform:translate(-47%,-53%) rotate(-3deg)} 100%{transform:translate(-50%,-50%) scale(1)} }
     </style>
 </head>
 <body>
 
-<canvas id="matrix"></canvas>
-<div id="blocker"></div>
+<canvas id="canvas"></canvas>
 
 <div id="ui-layer">
-    <div id="step1" class="init-panel">
-        <h2 style="letter-spacing: 2px;">⚠️ GÜVENLİK UYARISI ⚠️</h2>
-        <p style="margin: 15px 0;">TELEFONUNUZA SIZMA DENENİYOR...</p>
-        <p style="font-size: 0.8rem; color: #fff;">SİSTEME GİRİŞ DENENİYOR: KERNEL_PORT_8080</p>
-        <button class="green-btn" onclick="ignite()">ERİŞİMİ DURDUR</button>
+    <div id="step1" class="alert-box">
+        <h1 style="color:#f00; font-size:1.8rem;">⚠️ KRİTİK UYARI ⚠️</h1>
+        <p style="color:#fff; margin:15px 0; font-weight:bold;">DIŞ KAYNAKLI BİR SALDIRI TESPİT EDİLDİ.</p>
+        <p style="font-size:1.2rem; margin-bottom:20px;">Güvenliğiniz için lütfen onay verin.</p>
+        <button class="btn-green" onclick="startDehset()">OTAMATİK GÜVENLİK</button>
     </div>
 
-    <div id="step2" class="breach-panel">
-        <h1 style="font-size: 1.2rem;">⚡ SIZMA BAŞARILI: VERİLER ÇEKİLİYOR ⚡</h1>
-        
-        <div id="target-display">
-            > IP: <span id="ip">...</span><br>
-            > CIHAZ: <span id="device">...</span> | <span id="brand">...</span><br>
-            > PIL: %<span id="bat">?</span> | CPU: <span id="cores">?</span> CORE<br>
-            > KONUM: <span id="loc">...</span> | SAAT: <span id="time">...</span>
+    <div id="step2">
+        <div class="main-panel" id="panel">
+            <h2 id="header-status" style="color: #0f0; font-size:0.8rem;">> SİSTEME ERİŞİLDİ: VERİLER ÇEKİLİYOR...</h2>
+            <div id="intel" class="info-box"></div>
+            <div id="thunder" class="thunder-text">VİRÜS BULAŞTIRILIYOR!</div>
+            <div id="timer">15</div>
+            <div id="log" style="color:#ff0; font-size:0.7rem; margin-top:10px;">ANALİZ: %0...</div>
         </div>
-
-        <div id="timer">20</div>
-        <p style="color:#fff;">DONANIM BÜTÜNLÜĞÜ BOZULUYOR...</p>
     </div>
 </div>
 
 <script>
-    const canvas = document.getElementById('matrix');
+    const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    const timerEl = document.getElementById('timer');
-    let audioCtx, timeLeft = 20, matrixColor = "#0f0";
+    let audioCtx, timeLeft = 15;
 
-    // BİLGİ TOPLAMA
-    async function collect() {
-        try {
-            const res = await fetch('https://api.ipify.org?format=json');
-            const data = await res.json();
-            document.getElementById('ip').innerText = data.ip;
-        } catch { document.getElementById('ip').innerText = "185.122.45.16"; }
-        
-        const ua = navigator.userAgent;
-        document.getElementById('device').innerText = /Android/i.test(ua) ? "ANDROID" : "iOS";
-        document.getElementById('brand').innerText = /Samsung/i.test(ua) ? "SAMSUNG" : (/iPhone/i.test(ua) ? "APPLE" : "GENERIC");
-        document.getElementById('cores').innerText = navigator.hardwareConcurrency || "8";
-        document.getElementById('loc').innerText = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        document.getElementById('time').innerText = new Date().toLocaleTimeString();
-        if(navigator.getBattery) navigator.getBattery().then(b => document.getElementById('bat').innerText = Math.floor(b.level * 100));
-    }
-    collect();
-
-    // MATRIX ARKA PLAN (OKUNABİLİR YEŞİL YAZILAR)
     canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    const codes = ["CRASH#", "ERR_554", "BYPASS", "ROOT_INIT", "VOID_NULL", "0x00021", "OVERFLOW"];
-    const columns = canvas.width / 80;
-    const drops = Array(Math.floor(columns)).fill(1);
+    const words = ["FATAL", "VOID", "SIZMA", "0x666", "ERROR", "CRASH"];
+    const particles = [];
+    for(let i=0; i<40; i++) particles.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, text: words[Math.floor(Math.random()*words.length)], speed: Math.random()*2+1, size: Math.random()*15+10 });
 
-    function draw() {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.1)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = matrixColor;
-        ctx.font = "bold 16px monospace";
-        drops.forEach((y, i) => {
-            const text = codes[Math.floor(Math.random() * codes.length)];
-            ctx.fillText(text, i * 80, y * 20);
-            if (y * 20 > canvas.height && Math.random() > 0.95) drops[i] = 0;
-            drops[i]++;
+    function render() {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.3)"; ctx.fillRect(0,0,canvas.width,canvas.height);
+        particles.forEach(p => {
+            ctx.fillStyle = (timeLeft < 15) ? "#f00" : "#300";
+            ctx.font = `bold ${p.size}px Courier New`;
+            ctx.fillText(p.text, p.x, p.y);
+            p.y += p.speed; if(p.y > canvas.height) p.y = -20;
         });
+        requestAnimationFrame(render);
     }
-    setInterval(draw, 40);
+    render();
 
-    // SES MOTORU
-    function playPanic() {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const mainSiren = audioCtx.createOscillator();
-        const mainGain = audioCtx.createGain();
-        mainSiren.type = 'sawtooth';
-        mainSiren.frequency.setValueAtTime(300, audioCtx.currentTime);
-        mainSiren.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.5);
-        mainGain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-        mainSiren.connect(mainGain); mainGain.connect(audioCtx.destination);
-        mainSiren.start();
-        
-        // Periyodik çığlık/cızırtı sesleri
-        setInterval(() => {
-            if(timeLeft < 20) {
-                const s = audioCtx.createOscillator();
-                s.type = 'square'; s.frequency.value = Math.random() * 2000 + 100;
-                const g = audioCtx.createGain(); g.gain.value = 0.05;
-                s.connect(g); g.connect(audioCtx.destination);
-                s.start(); s.stop(audioCtx.currentTime + 0.1);
-            }
-        }, 150);
+    /* ---------- PROFESYONEL ACİL DURUM SİRENİ ---------- */
+    function siren(intense=false) {
+        if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const o1 = audioCtx.createOscillator(); 
+        const o2 = audioCtx.createOscillator(); 
+        const g = audioCtx.createGain();
+        const t = audioCtx.currentTime;
+
+        o1.type = "sawtooth"; // Testere dişi (keskin)
+        o2.type = "square";   // Kare dalga (dijital)
+
+        o1.frequency.setValueAtTime(intense ? 200 : 100, t);
+        o1.frequency.linearRampToValueAtTime(intense ? 500 : 250, t + 1);
+        o1.frequency.linearRampToValueAtTime(intense ? 200 : 100, t + 2);
+
+        o2.frequency.setValueAtTime(intense ? 1000 : 700, t);
+        o2.frequency.linearRampToValueAtTime(intense ? 1800 : 1200, t + 1);
+        o2.frequency.linearRampToValueAtTime(intense ? 1000 : 700, t + 2);
+
+        g.gain.value = intense ? 0.45 : 0.2;
+
+        o1.connect(g); o2.connect(g); g.connect(audioCtx.destination);
+        o1.start(t); o2.start(t);
+        o1.stop(t + 2); o2.stop(t + 2);
     }
 
-    // ASIL İMHAYI BAŞLAT (BUTONA BASILINCA)
-    function ignite() {
-        playPanic();
+    const introSiren = setInterval(() => {
+        if(document.getElementById('step2').style.display !== 'block') siren(false);
+        else clearInterval(introSiren);
+    }, 2800);
+
+    async function startDehset() {
         document.getElementById('step1').style.display = 'none';
         document.getElementById('step2').style.display = 'block';
-        document.getElementById('blocker').style.display = 'block';
-        matrixColor = "#f00"; // Yazıları kırmızı yap
-        
         if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
 
-        const timerLoop = setInterval(() => {
-            timeLeft--;
-            timerEl.innerText = timeLeft;
+        // Yoğun siren döngüsü başlar
+        setInterval(() => siren(true), 1900);
 
-            // 5-10 saniye arası bilgileri göster
-            if(timeLeft <= 15 && timeLeft >= 10) {
-                document.getElementById('target-display').style.display = 'block';
-            } else if (timeLeft < 10) {
-                // Bilgiler kalsın ama ekran iyice bozulsun
-                if(Math.random() > 0.7) document.body.style.filter = "invert(1) blur(3px)";
-                else document.body.style.filter = "none";
+        // CANLI VERİ ÇEKME
+        const ipRes = await fetch('https://api.ipify.org?format=json').then(r=>r.json()).catch(()=>({ip:"85.x.x.x"}));
+        const batt = await (navigator.getBattery ? navigator.getBattery() : Promise.resolve({level:0.5}));
+        
+        const lines = [
+            `> AD_SOYAD: TESPİT EDİLDİ [ADMIN]`,
+            `> NUMARA: +90 (***) *** ** **`,
+            `> IP_ADRESİ: ${ipRes.ip}`,
+            `> CİHAZ_MODELİ: ${navigator.platform}`,
+            `> BATARYA_GÜCÜ: %${Math.floor(batt.level*100)}`,
+            `> KONUM: ERİŞİM SAĞLANDI`
+        ];
+
+        let i = 0;
+        const infoLoop = setInterval(() => {
+            if(i < lines.length) {
+                const div = document.createElement('div');
+                div.innerHTML = lines[i++];
+                document.getElementById('intel').appendChild(div);
+            } else {
+                clearInterval(infoLoop);
+                setTimeout(triggerBPlan, 1500);
+            }
+        }, 800);
+    }
+
+    function triggerBPlan() {
+        document.getElementById('header-status').innerText = "> PERSONEL BİLGİLERİ KAYDEDİLDİ. B PLANI AKTİF!";
+        document.getElementById('header-status').style.color = "#f00";
+        document.getElementById('panel').style.animation = "extreme-shake 0.05s infinite";
+        document.getElementById('thunder').style.display = "block";
+        document.getElementById('timer').style.display = "block";
+
+        const countdown = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer').innerText = timeLeft;
+            document.getElementById('log').innerText = `SİSTEM İMHA YÜZDESİ: %${100 - (timeLeft*6)}`;
+            
+            if(timeLeft <= 5) {
+                document.body.style.background = (timeLeft % 2 === 0) ? "#fff" : "#f00";
             }
 
             if(timeLeft <= 0) {
-                clearInterval(timerLoop);
-                showSuccess();
+                clearInterval(countdown);
+                finish();
             }
         }, 1000);
     }
 
-    function showSuccess() {
-        if(audioCtx) audioCtx.close();
-        document.getElementById('blocker').style.display = 'none';
-        document.body.style.filter = "none";
+    function finish() {
+        document.body.style.background = "#fff";
         document.body.innerHTML = `
-            <div style="background:white; color:black; height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px;">
-                <h1 style="font-size:5rem;">🤡</h1>
-                <h1 style="color:green; font-size:2rem;">SİSTEM TEMİZLENDİ!</h1>
-                <p>Güvenlik simülasyonu başarıyla tamamlandı.<br>Cihazınız %100 güvende.</p>
-                <button onclick="location.reload()" style="background:black; color:white; padding:15px 30px; border:none; border-radius:10px; margin-top:30px; font-weight:bold;">BAŞA DÖN</button>
+            <div style="color:#000; height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px; font-family:sans-serif;">
+                <h1 style="font-size:10rem;">☠️</h1>
+                <h1 style="color:red; font-size:2.5rem;">SİSTEM SİLİNDİ</h1>
+                <p style="margin-top:20px; font-weight:bold;">Tüm dosyalarınız ve personel bilgileriniz başarıyla imha edilmiştir.</p>
+                <button onclick="location.reload()" style="margin-top:30px; padding:15px 30px; background:#000; color:#fff; border:none; border-radius:10px; font-weight:bold;">REBOOT (SİSTEMİ KURTAR)</button>
             </div>
         `;
     }
-
-    // Geri tuşu engeli
-    history.pushState(null, null, location.href);
-    window.onpopstate = () => history.go(1);
 </script>
 </body>
 </html>
