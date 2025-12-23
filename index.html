@@ -1,158 +1,164 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>⚠ KRİTİK SİSTEM HATASI ⚠</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #000;
-      font-family: 'Courier New', monospace;
-      color: #ff0000;
-      cursor: none;
-      user-select: none;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>⚠ KRİTİK SİSTEM HATASI ⚠</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Courier New', monospace;
+            color: #ff0000;
+            cursor: none;
+            user-select: none;
+        }
 
-    #fullscreen-prompt {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #000;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      overflow: hidden;
-    }
+        #error-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: -1;
+            overflow: hidden;
+        }
 
-    #error-background {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #000;
-      z-index: -1;
-      overflow: hidden;
-    }
+        #error-logs {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            font-size: 12px;
+            color: #ff0000;
+            text-shadow: 0 0 5px #ff0000;
+            white-space: pre;
+            animation: scroll-logs 5s linear infinite;
+            pointer-events: none;
+            opacity: 0.8;
+        }
 
-    #error-logs {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      font-size: 12px;
-      color: #ff0000;
-      text-shadow: 0 0 5px #ff0000;
-      white-space: pre;
-      animation: scroll-logs 10s linear infinite;
-      pointer-events: none;
-    }
+        @keyframes scroll-logs {
+            0% { transform: translateY(100%); }
+            100% { transform: translateY(-100%); }
+        }
 
-    @keyframes scroll-logs {
-      0% { transform: translateY(100%); }
-      100% { transform: translateY(-100%); }
-    }
+        #fullscreen-prompt {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            background: rgba(0, 0, 0, 0.8);
+        }
 
-    #main-error {
-      text-align: center;
-      z-index: 1;
-    }
+        #main-error h1 {
+            font-size: 2.5em;
+            color: #ff0000;
+            text-shadow: 0 0 10px #ff0000;
+            animation: flicker 1.5s infinite;
+            margin-bottom: 20px;
+        }
 
-    #main-error h1 {
-      font-size: 2.5em;
-      color: #ff0000;
-      text-shadow: 0 0 10px #ff0000;
-      animation: flicker 1.5s infinite;
-      margin-bottom: 20px;
-    }
+        #main-error p {
+            font-size: 1.2em;
+            color: #ff5555;
+            margin: 10px 0;
+        }
 
-    #main-error p {
-      font-size: 1.2em;
-      color: #ff5555;
-      margin: 10px 0;
-    }
+        @keyframes flicker {
+            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+            20%, 24%, 55% { opacity: 0.6; }
+        }
 
-    #fake-button {
-      display: inline-block;
-      padding: 15px 30px;
-      background: #00ff00;
-      color: #000;
-      font-weight: bold;
-      margin: 30px 0;
-      cursor: pointer;
-      border: 3px solid #fff;
-      font-family: 'Courier New', monospace;
-      font-size: 1.2em;
-      border-radius: 5px;
-      box-shadow: 0 0 10px #00ff00;
-      animation: pulse 1s infinite;
-    }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
 
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
+        .shake {
+            animation: shake 0.1s infinite;
+        }
 
-    #countdown-screen {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #000;
-      z-index: 9998;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-    }
+        #fake-button {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #00ff00;
+            color: #000;
+            font-weight: bold;
+            margin: 30px 0;
+            cursor: pointer;
+            border: 3px solid #fff;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            border-radius: 5px;
+            box-shadow: 0 0 10px #00ff00;
+            animation: pulse 1s infinite;
+        }
 
-    #countdown {
-      font-size: 4em;
-      color: #ff0000;
-      text-shadow: 0 0 10px #ff0000;
-      margin-bottom: 20px;
-    }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
 
-    #final-message {
-      display: none;
-      text-align: center;
-      color: #00ff00;
-      font-size: 1.5em;
-      margin-top: 20px;
-    }
+        #countdown-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 9998;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
 
-    @keyframes flicker {
-      0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
-      20%, 24%, 55% { opacity: 0.6; }
-    }
+        #countdown {
+            font-size: 4em;
+            color: #ff0000;
+            text-shadow: 0 0 10px #ff0000;
+            margin-bottom: 20px;
+        }
 
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      20%, 60% { transform: translateX(-5px); }
-      40%, 80% { transform: translateX(5px); }
-    }
+        #dynamic-logs {
+            color: #ff0000;
+            font-size: 1.2em;
+            text-align: center;
+        }
 
-    .shake {
-      animation: shake 0.1s infinite;
-    }
-  </style>
+        #final-message {
+            display: none;
+            text-align: center;
+            color: #00ff00;
+            font-size: 1.5em;
+            margin-top: 20px;
+            animation: fadeIn 2s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
 </head>
 <body>
 
-<div id="fullscreen-prompt">
-  <div id="error-background">
+<div id="error-background">
     <div id="error-logs">
 ERROR_554: System corruption detected
 BOOT_FAILURE: Unable to load kernel
@@ -166,135 +172,172 @@ ERROR_554: System corruption detected
 BOOT_FAILURE: Unable to load kernel
 MEMORY_LEAK: Critical process terminated
 SECURITY_BREACH: Unauthorized access
+ERROR_554: System corruption detected
+BOOT_FAILURE: Unable to load kernel
+MEMORY_LEAK: Critical process terminated
+SECURITY_BREACH: Unauthorized access
     </div>
-  </div>
-  <div id="main-error">
-    <h1 class="shake">⚠ VİRÜS ALGILANDI! ⚠</h1>
-    <p>Sistem dosyaları siliniyor...</p>
-    <p>#INVALID_ERROR_554</p>
-    <div id="fake-button" onclick="startFullscreen()">ACİL GÜVENLİK ÖNLEMİ</div>
-  </div>
+</div>
+
+<div id="fullscreen-prompt">
+    <div id="main-error">
+        <h1 class="shake">⚠ VİRÜS ALGILANDI! ⚠</h1>
+        <p>Sistem dosyaları siliniyor...</p>
+        <p>#INVALID_ERROR_554</p>
+        <div id="fake-button" onclick="startFullscreen()">ACİL GÜVENLİK ÖNLEMİ</div>
+    </div>
 </div>
 
 <div id="countdown-screen">
-  <div id="countdown">15</div>
-  <div id="dynamic-logs"></div>
+    <div id="countdown">15</div>
+    <div id="dynamic-logs"></div>
 </div>
 
 <div id="final-message">
-  <p>🔄 SİSTEM KURTARILDI!</p>
-  <p>Bu sadece bir simülasyondu.</p>
-  <p>Telefonunuz güvende. 😊</p>
+    <p>🔄 SİSTEM KURTARILDI!</p>
+    <p>Bu sadece bir şaka.</p>
+    <p>Telefonunuz güvende. 😊</p>
 </div>
 
 <audio id="error-sound" loop>
-  <source src="data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU..." type="audio/wav">
+    <source src="data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU..." type="audio/wav">
 </audio>
 
 <script>
-  // ---------- SES AYARLARI (KISILAMAZ) ----------
-  const errorSound = document.getElementById("error-sound");
-  errorSound.volume = 0.5; // Orta seviye
-  errorSound.loop = true;
+    // ---------- SES AYARLARI (KAPATILAMAZ, SABİT ORTA DÜZEY) ----------
+    const errorSound = document.getElementById("error-sound");
+    errorSound.volume = 0.5; // Orta seviye
+    errorSound.loop = true;
 
-  // Ses dosyası (base64 encoded alarm sesi)
-  errorSound.src = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU..."; // Kısaltıld
-  // (Gerçek kodda tam base64 ses dosyası olacak)
+    // Base64 alarm sesi (kısaltılmış, gerçek kodda tam base64 olacak)
+    errorSound.src = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU...";
 
-  // ---------- TAM EKRAN MODU (ÇIKIŞ ENGELLENİYOR) ----------
-  function startFullscreen() {
-    const el = document.documentElement;
-    const prompt = document.getElementById("fullscreen-prompt");
-    const countdownScreen = document.getElementById("countdown-screen");
-    const finalMessage = document.getElementById("final-message");
+    // Ses başlat
+    errorSound.play().catch(e => console.log("Ses oynatma hatası:", e));
 
-    const enterFullscreen = () => {
-      prompt.style.display = "none";
-      countdownScreen.style.display = "flex";
-      errorSound.play(); // Ses başlat
-      startCountdown();
-    };
+    // Sesin kapatılmasını engelle
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+            errorSound.play().catch(e => console.log("Ses tekrar başlatıldı:", e));
+        }
+    });
 
-    if (el.requestFullscreen) {
-      el.requestFullscreen().then(enterFullscreen).catch(enterFullscreen);
-    } else if (el.webkitRequestFullscreen) {
-      el.webkitRequestFullscreen();
-      enterFullscreen();
-    } else if (el.msRequestFullscreen) {
-      el.msRequestFullscreen();
-      enterFullscreen();
-    } else {
-      enterFullscreen();
+    // ---------- TAM EKRAN MODU (ÇIKIŞ ENGELLENİYOR) ----------
+    function startFullscreen() {
+        const el = document.documentElement;
+        const prompt = document.getElementById("fullscreen-prompt");
+        const countdownScreen = document.getElementById("countdown-screen");
+
+        const enterFullscreen = () => {
+            prompt.style.display = "none";
+            countdownScreen.style.display = "flex";
+            startCountdown();
+        };
+
+        if (el.requestFullscreen) {
+            el.requestFullscreen().then(enterFullscreen).catch(enterFullscreen);
+        } else if (el.webkitRequestFullscreen) {
+            el.webkitRequestFullscreen();
+            enterFullscreen();
+        } else if (el.msRequestFullscreen) {
+            el.msRequestFullscreen();
+            enterFullscreen();
+        } else {
+            enterFullscreen();
+        }
+
+        // Tam ekrandan çıkışı engelle (15 saniye boyunca)
+        document.addEventListener("keydown", blockExit, false);
+        document.addEventListener("fullscreenchange", handleFullscreenChange);
+
+        function blockExit(e) {
+            if (e.key === "Escape") {
+                e.preventDefault();
+            }
+        }
+
+        function handleFullscreenChange() {
+            if (!document.fullscreenElement) {
+                // Tam ekrandan çıkılmaya çalışıldıysa tekrar tam ekrana geç
+                if (el.requestFullscreen) {
+                    el.requestFullscreen().catch(() => {});
+                }
+            }
+        }
     }
 
-    // Tam ekrandan çıkışı engelle (15 saniye boyunca)
-    document.addEventListener("keydown", blockExit, false);
-    function blockExit(e) {
-      if (e.key === "Escape") {
+    // ---------- GERİ SAYIM (15 SANİYE) ----------
+    function startCountdown() {
+        const countdownElement = document.getElementById("countdown");
+        const logsElement = document.getElementById("dynamic-logs");
+        const finalMessage = document.getElementById("final-message");
+        let countdown = 15;
+
+        const logs = [
+            "⚠ KRİTİK HATA: SİSTEM KİLİTLİ!",
+            "Boot sektörü bozuldu...",
+            "Veriler şifreleniyor...",
+            "Ağ bağlantısı kesildi!",
+            "CPU aşırı ısındı!",
+            "Bellek sızıntısı tespit edildi!",
+            "Yedekleme başarısız!",
+            "Sistem kurtarma başlatılıyor...",
+            "⚠ TÜM VERİLER KAYBEDİLİYOR ⚠",
+            "Lütfen bekleyin...",
+            "Güvenlik protokolleri devrede...",
+            "15 saniye içinde sistem sıfırlanacak!",
+            "⚠ PANİK YAPMAYIN! ⚠",
+            "Bu bir simülasyondur...",
+            "Gerçek değil..."
+        ];
+
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            countdownElement.textContent = countdown;
+
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                errorSound.pause();
+                finalMessage.style.display = "block";
+                document.getElementById("countdown-screen").style.display = "none";
+
+                // Tam ekrandan çık
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+
+                // 3 saniye sonra sayfayı sıfırla
+                setTimeout(() => {
+                    location.reload();
+                }, 3000);
+            } else {
+                // Her saniye yeni bir log ekle
+                if (countdown <= logs.length) {
+                    const log = document.createElement("p");
+                    log.textContent = logs[countdown - 1];
+                    log.style.color = "#ff0000";
+                    log.style.fontSize = "1.2em";
+                    log.style.margin = "5px 0";
+                    logsElement.appendChild(log);
+                }
+            }
+        }, 1000);
+    }
+
+    // ---------- TELEFONU KAPATMAYI ENGELLE (MOBİL) ----------
+    window.addEventListener("beforeunload", (e) => {
         e.preventDefault();
-      }
-    }
-  }
+        e.returnValue = "Sistem kurtarma işlemi devam ediyor! Telefonu kapatmayın!";
+        return e.returnValue;
+    });
 
-  // ---------- GERİ SAYIM (15 SANİYE) ----------
-  function startCountdown() {
-    const countdownElement = document.getElementById("countdown");
-    const logsElement = document.getElementById("dynamic-logs");
-    const finalMessage = document.getElementById("final-message");
-    let countdown = 15;
-
-    const logs = [
-      "⚠ KRİTİK HATA: SİSTEM KİLİTLİ!",
-      "Boot sektörü bozuldu...",
-      "Veriler şifreleniyor...",
-      "Ağ bağlantısı kesildi!",
-      "CPU aşırı ısındı!",
-      "Bellek sızıntısı tespit edildi!",
-      "Yedekleme başarısız!",
-      "Sistem kurtarma başlatılıyor...",
-      "⚠ TÜM VERİLER KAYBEDİLİYOR ⚠",
-      "Lütfen bekleyin...",
-      "Güvenlik protokolleri devrede...",
-      "15 saniye içinde sistem sıfırlanacak!",
-      "⚠ PANİK YAPMAYIN! ⚠",
-      "Bu bir simülasyondur...",
-      "Gerçek değil..."
-    ];
-
-    const countdownInterval = setInterval(() => {
-      countdown--;
-      countdownElement.textContent = countdown;
-
-      if (countdown <= 0) {
-        clearInterval(countdownInterval);
-        errorSound.pause(); // Ses durdur
-        finalMessage.style.display = "block";
-        document.getElementById("countdown-screen").style.display = "none";
-
-        // Tam ekrandan çık
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-          document.webkitExitFullscreen();
-        }
-
-        // 3 saniye sonra sayfayı sıfırla
-        setTimeout(() => {
-          location.reload();
-        }, 3000);
-      } else {
-        // Her saniye yeni bir log ekle
-        if (countdown <= logs.length) {
-          const log = document.createElement("p");
-          log.textContent = logs[countdown - 1];
-          log.style.color = "#ff0000";
-          log.style.fontSize = "1.2em";
-          log.style.margin = "5px 0";
-          logsElement.appendChild(log);
-        }
-      }
-    }, 1000);
-  }
+    // ---------- GERİ TUŞUNU ENGELLE (MOBİL) ----------
+    history.pushState(null, null, location.href);
+    window.addEventListener("popstate", () => {
+        history.pushState(null, null, location.href);
+    });
 </script>
 
 </body>
