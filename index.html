@@ -3,192 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SİSTEM İMHASI AKTİF</title>
+    <title>SİSTEM HATASI</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { 
             width: 100%; height: 100%; overflow: hidden; background: #000;
-            font-family: 'Courier New', monospace; touch-action: none;
+            font-family: 'Courier New', monospace;
+            pointer-events: none; 
         }
 
-        /* Arka Plan: Daha Belirgin Hata Yağmuru */
-        #matrix-canvas { position: fixed; top: 0; left: 0; z-index: 1; }
+        canvas { position: fixed; top: 0; left: 0; z-index: 1; opacity: 0.8; }
 
-        #overlay {
+        #ui-layer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 100; display: flex; flex-direction: column;
             justify-content: center; align-items: center;
             background: rgba(0, 0, 0, 0.85); color: #ff0000; text-align: center;
         }
 
-        .main-frame {
-            border: 6px solid #ff0000; padding: 40px;
-            background: #0a0000; box-shadow: 0 0 150px #f00;
-            animation: terminal-shake 0.05s infinite;
-            max-width: 90%;
+        .alert-box {
+            border: 5px solid #ff0000; padding: 30px; background: #0a0000;
+            box-shadow: 0 0 100px #ff0000; width: 90%;
+            animation: shake 0.1s infinite;
+            pointer-events: auto; 
         }
 
-        h1 { font-size: 3.5rem; text-shadow: 0 0 30px #f00; margin-bottom: 10px; }
-        .warning-text { font-size: 1.2rem; color: #fff; margin-bottom: 20px; letter-spacing: 2px; }
-        #timer { font-size: 18vw; font-weight: bold; line-height: 1; margin: 10px 0; }
-
-        @keyframes terminal-shake {
-            0% { transform: translate(2px, -2px); }
-            50% { transform: translate(-2px, 2px) scale(1.02); }
-            100% { transform: translate(2px, 2px); }
+        h1 { font-size: 1.8rem; text-shadow: 0 0 20px red; }
+        
+        /* Acil Çıkış Alanı: Sayaca basılı tutulunca aktif olur */
+        #timer { 
+            font-size: 25vw; font-weight: bold; margin: 10px 0; 
+            user-select: none; -webkit-user-select: none;
         }
 
-        /* Glitch Katmanı */
-        #glitch-screen {
+        button {
+            background: #ff0000; color: #fff; border: 4px solid #fff;
+            padding: 15px 30px; font-size: 1.2rem; font-weight: bold;
+            margin-top: 20px; pointer-events: auto;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, -1px); }
+            50% { transform: translate(-1px, 1px) scale(1.01); }
+            100% { transform: translate(1px, 1px); }
+        }
+
+        #blocker {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1000; pointer-events: none; background: rgba(255,0,0,0.2);
-            display: none;
+            z-index: 99999; display: none; background: transparent;
+            pointer-events: auto;
         }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
-<canvas id="matrix-canvas"></canvas>
-<div id="glitch-screen"></div>
+<canvas id="matrix"></canvas>
+<div id="blocker"></div>
 
-<div id="overlay">
-    <div class="main-frame">
-        <h1>☢️ SİSTEM İHLALİ ☢️</h1>
-        <p class="warning-text">DONANIM BÜTÜNLÜĞÜ TEHLİKEDE: KERNEL-SİZINTISI</p>
+<div id="ui-layer">
+    <div class="alert-box" id="content">
+        <h1>⚠️ DONANIM İHLALİ ⚠️</h1>
+        <p style="color:white; margin-top:10px; font-size: 0.9rem;">Kernel seviyesinde sızıntı algılandı.<br>Dosya bütünlüğü bozuluyor...</p>
+        
         <div id="timer">15</div>
-        <p id="status-log" style="color: #555;">ROOT/DEVICES/STORAGE SİLİNİYOR...</p>
+        
+        <button id="action-btn" onclick="startTrap()">ACİL KURTARMA</button>
     </div>
 </div>
 
 <script>
-    const canvas = document.getElementById('matrix-canvas');
+    const canvas = document.getElementById('matrix');
     const ctx = canvas.getContext('2d');
     const timerEl = document.getElementById('timer');
-    const logEl = document.getElementById('status-log');
+    const btn = document.getElementById('action-btn');
+    const blocker = document.getElementById('blocker');
     let audioCtx;
+    let timeLeft = 15;
+    let emergencyTimer;
 
-    // 1. ARKA PLAN: DAHA BELİRGİN VE CANLI MATRİX YAĞMURU
+    // 1. HAFIZA KONTROLÜ
+    if(localStorage.getItem('prank_active')) {
+        timeLeft = parseInt(localStorage.getItem('prank_time')) || 15;
+        setTimeout(() => {
+            alert("KAÇIŞ GİRİŞİMİ ENGELLENDİ. SİSTEM KİLİTLİ.");
+            startTrap();
+        }, 500);
+    }
+
+    // 2. MATRIX ARKA PLAN
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    const codes = "CRITICAL_ERROR_FATAL_FAILURE_666_SYSTEM_WIPE_BIOS_OVERLOAD_010101";
-    const columns = canvas.width / 25;
-    const drops = Array(Math.floor(columns)).fill(1);
+    const chars = "ERROR_FATAL_666_FAILURE_SYSTEM_WIPE";
+    const drops = Array(Math.floor(canvas.width / 20)).fill(1);
 
     function drawMatrix() {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.15)"; // Daha az opaklık, daha parlak yazılar
+        ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#ff0000"; // Saf kırmızı
-        ctx.font = "bold 20px monospace"; // Daha büyük ve kalın yazı
-
+        ctx.fillStyle = "#f00";
+        ctx.font = "20px monospace";
         drops.forEach((y, i) => {
-            const text = codes[Math.floor(Math.random() * codes.length)];
-            ctx.fillText(text, i * 25, y * 25);
-            if (y * 25 > canvas.height && Math.random() > 0.95) drops[i] = 0;
+            const text = chars[Math.floor(Math.random() * chars.length)];
+            ctx.fillText(text, i * 20, y * 20);
+            if (y * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
             drops[i]++;
         });
     }
-    setInterval(drawMatrix, 30);
+    setInterval(drawMatrix, 35);
 
-    // 2. SES MOTORU: DURMAYAN DEHŞET UĞULTUSU (Drone & Static)
-    function startDeepHorror() {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        const createOsc = (freq, type, vol) => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-        };
-
-        createOsc(50, 'sawtooth', 0.1); // Derin Uğultu
-        createOsc(52, 'sawtooth', 0.1); // Rahatsız edici vuruş
-        
-        // Rastgele cızırtılar
-        setInterval(() => {
-            createOsc(Math.random() * 2000, 'square', 0.05);
-        }, 800);
+    // 3. ACİL ÇIKIŞ MEKANİZMASI (Hidden Backdoor)
+    // Sayacın üzerine 3 saniye basılı tutulursa şaka biter.
+    function resetEverything() {
+        timeLeft = 0;
+        localStorage.clear();
+        showSuccess();
     }
 
-    // 3. GEÇMİŞ VE ÇIKIŞ ENGELLERİ
-    (function blockAll() {
-        // Sonsuz Geçmiş Döngüsü
-        for(let i=0; i<50; i++) history.pushState(null, null, "#breach_" + i);
-        window.onpopstate = () => {
-            history.forward();
-            alert("GERİ DÖNÜŞ PROTOKOLÜ ENGELLENDİ.");
-        };
+    timerEl.addEventListener('mousedown', () => emergencyTimer = setTimeout(resetEverything, 3000));
+    timerEl.addEventListener('touchstart', () => emergencyTimer = setTimeout(resetEverything, 3000));
+    timerEl.addEventListener('mouseup', () => clearTimeout(emergencyTimer));
+    timerEl.addEventListener('touchend', () => clearTimeout(emergencyTimer));
 
-        // Klavye Engeli
-        document.addEventListener('keydown', (e) => {
-            e.preventDefault();
-            if(audioCtx) playGlitch();
-            return false;
-        });
-    })();
-
-    // 4. APP SWITCHER (SEKME DEĞİŞTİRME) TAKTİĞİ
-    // Eğer kullanıcı sayfadan ayrılmaya çalışırsa (yukarı kaydırırsa) cihazı korkut
-    document.addEventListener("visibilitychange", () => {
-        if (document.hidden) {
-            // Kullanıcı sekmeyi gizlediğinde yapılacak bir şey yok ama geri geldiğinde:
-            console.log("Kaçmaya çalıştı.");
-        } else {
-            logEl.innerText = "KAÇMA GİRİŞİMİ ALGILANDI: İMHA HIZLANDIRILDI!";
-            logEl.style.color = "yellow";
-            document.getElementById('glitch-screen').style.display = "block";
-            setTimeout(() => document.getElementById('glitch-screen').style.display = "none", 1000);
-        }
-    });
-
-    // 5. ANA DÖNGÜ
-    let time = 15;
-    function startProtocol() {
-        startDeepHorror();
-        if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+    // 4. KORKUTUCU SES
+    function playHorrorSound() {
+        if (audioCtx) return;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
-        const timerInterval = setInterval(() => {
-            time--;
-            timerEl.innerText = time;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(40, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+    }
 
-            // Ekran Glitch Efekti
+    // 5. TUZAK BAŞLATMA
+    function startTrap() {
+        playHorrorSound();
+        btn.style.display = 'none';
+        blocker.style.display = 'block';
+        localStorage.setItem('prank_active', 'true');
+        
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(() => {});
+        }
+
+        const countdown = setInterval(() => {
+            if(timeLeft <= 0) {
+                clearInterval(countdown);
+                return;
+            }
+            timeLeft--;
+            timerEl.innerText = timeLeft;
+            localStorage.setItem('prank_time', timeLeft);
+
+            // Glitch efekti
             if(Math.random() > 0.8) {
                 document.body.style.filter = "invert(1)";
                 setTimeout(() => document.body.style.filter = "none", 50);
             }
 
-            if(time <= 0) {
-                clearInterval(timerInterval);
-                finish();
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                localStorage.clear();
+                showSuccess();
             }
         }, 1000);
     }
 
-    function finish() {
+    function showSuccess() {
         if(audioCtx) audioCtx.close();
+        blocker.style.display = 'none';
+        document.body.style.pointerEvents = 'auto';
+        document.body.style.filter = "none";
+        
         document.body.innerHTML = `
-            <div style="background:white; color:black; height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
-                <h1 style="font-size:4rem;">SYSTEM RESTORED</h1>
-                <p>Güvenlik taraması tamamlandı. Cihazınız temiz.</p>
-                <p>Bu sadece bir şakaydı!</p>
-                <button onclick="location.reload()" style="padding:15px; margin-top:20px; cursor:pointer;">KAPAT</button>
+            <div style="background:white; color:black; height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px;">
+                <h1 style="font-size:4rem;">🔄</h1>
+                <h1 style="color:green; font-size:2.5rem;">SİSTEM KURTARILDI</h1>
+                <p style="font-size:1.1rem; margin-top:10px;">Endişelenmeyin, bu sadece bir güvenlik simülasyonuydu.</p>
+                <p style="color:#666; margin-top:5px;">Cihazınız %100 güvende. 😊</p>
+                <button onclick="location.reload()" style="background:black; color:white; padding:15px 30px; border-radius:10px; cursor:pointer; margin-top:30px; border:none;">BAŞA DÖN</button>
             </div>
         `;
     }
 
-    // İlk tıklamada her şeyi başlat
-    document.addEventListener('click', startProtocol, {once: true});
-
-    function playGlitch() {
-        const o = audioCtx.createOscillator();
-        o.type = 'square';
-        o.frequency.setValueAtTime(Math.random() * 5000, audioCtx.currentTime);
-        o.connect(audioCtx.destination);
-        o.start(); o.stop(audioCtx.currentTime + 0.05);
-    }
+    // Geri tuşu engeli
+    history.pushState(null, null, location.href);
+    window.onpopstate = () => history.go(1);
 </script>
+
 </body>
 </html>
